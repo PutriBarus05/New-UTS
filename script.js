@@ -1,7 +1,7 @@
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
 
-// Navigasi untuk layar HP
+// Navigasi untuk layar HP (responsive)
 menuToggle.addEventListener("click", function () {
     navMenu.classList.toggle("open");
 });
@@ -27,18 +27,14 @@ filterBtns.forEach(function (btn) {
         const category = btn.dataset.category;
 
         menuCards.forEach(function (card) {
-            if (category === "all" || card.dataset.category === category) {
-                card.style.display = "flex";
-            } else {
-                card.style.display = "none";
-            }
+            card.style.display =
+                (category === "all" || card.dataset.category === category) ? "flex" : "none";
         });
     });
 });
 
 // KERANJANG PESANAN
 const cart = {};
-
 const cartItems = document.getElementById("cartItems");
 const cartTotal = document.getElementById("cartTotal");
 
@@ -57,14 +53,12 @@ function renderCart() {
     let total = 0;
 
     if (names.length === 0) {
-        cartItems.innerHTML =
-            '<p class="empty-cart">Belum ada menu yang dipilih.</p>';
+        cartItems.innerHTML = '<p class="empty-cart">Belum ada menu yang dipilih.</p>';
     }
 
     names.forEach(function (name) {
         const item = cart[name];
         const subtotal = item.price * item.quantity;
-
         total += subtotal;
 
         const row = document.createElement("div");
@@ -80,9 +74,7 @@ function renderCart() {
         minusButton.type = "button";
         minusButton.textContent = "−";
         minusButton.setAttribute("aria-label", "Kurangi " + name);
-        minusButton.addEventListener("click", function () {
-            changeQuantity(name, -1);
-        });
+        minusButton.addEventListener("click", function () { changeQuantity(name, -1); });
 
         const quantity = document.createElement("span");
         quantity.textContent = item.quantity;
@@ -91,9 +83,7 @@ function renderCart() {
         plusButton.type = "button";
         plusButton.textContent = "+";
         plusButton.setAttribute("aria-label", "Tambah " + name);
-        plusButton.addEventListener("click", function () {
-            changeQuantity(name, 1);
-        });
+        plusButton.addEventListener("click", function () { changeQuantity(name, 1); });
 
         controls.append(minusButton, quantity, plusButton);
         row.append(description, controls);
@@ -105,13 +95,10 @@ function renderCart() {
 
 function changeQuantity(name, change) {
     if (!cart[name]) return;
-
     cart[name].quantity += change;
-
     if (cart[name].quantity <= 0) {
         delete cart[name];
     }
-
     renderCart();
 }
 
@@ -122,23 +109,23 @@ document.querySelectorAll(".add-button").forEach(function (button) {
         const price = Number(button.dataset.price);
 
         if (!cart[name]) {
-            cart[name] = {
-                price: price,
-                quantity: 0
-            };
+            cart[name] = { price: price, quantity: 0 };
         }
-
         cart[name].quantity += 1;
         renderCart();
     });
 });
 
-// FORM PEMESANAN INTEGRASI WHATSAPP
+// FORM PEMESANAN -> WHATSAPP (Nama, Alamat, Kota, Hobi)
 document.getElementById("orderForm").addEventListener("submit", function (event) {
     event.preventDefault();
 
     const customerName = document.getElementById("customerName").value.trim();
+    const customerAddress = document.getElementById("customerAddress").value.trim();
+    const customerCity = document.getElementById("customerCity").value;
     const customerNote = document.getElementById("customerNote").value.trim();
+    const hobi = Array.from(document.querySelectorAll('input[name="hobi"]:checked'))
+        .map(function (cb) { return cb.value; });
     const names = Object.keys(cart);
 
     if (names.length === 0) {
@@ -153,7 +140,12 @@ document.getElementById("orderForm").addEventListener("submit", function (event)
         return `• ${name} (${item.quantity}x)`;
     });
 
-    let waMessage = `Halo Barista KopiKita! 👋\nSaya mau pesan kopi nih:\n\n*Nama:* ${customerName}\n\n*Pesanan:*\n${orderDetails.join("\n")}\n\n*Total:* ${formatRupiah(total)}`;
+    let waMessage = `Halo Barista KopiKita! 👋\nSaya mau pesan kopi nih:\n\n` +
+        `*Nama:* ${customerName}\n` +
+        `*Alamat:* ${customerAddress}\n` +
+        `*Kota:* ${customerCity}\n` +
+        `*Hobi:* ${hobi.length ? hobi.join(", ") : "-"}\n\n` +
+        `*Pesanan:*\n${orderDetails.join("\n")}\n\n*Total:* ${formatRupiah(total)}`;
 
     if (customerNote) {
         waMessage += `\n*Catatan:* ${customerNote}`;
@@ -161,7 +153,7 @@ document.getElementById("orderForm").addEventListener("submit", function (event)
 
     waMessage += `\n\nTerima kasih! ☕`;
 
-    const waNumber = "6281234567890"; // Ganti dengan nomor WhatsApp toko/pribadi
+    const waNumber = "6281234567890"; // Ganti dengan nomor WhatsApp toko
     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
 
     window.open(waUrl, "_blank");
